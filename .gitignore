@@ -1,0 +1,15 @@
+/target/
+.env
+node_modules
+
+Cargo.lock
+coverage
+coverage.json
+typechain
+typechain-types
+
+#Hardhat files
+cache
+artifacts
+
+
