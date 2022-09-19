@@ -1,3 +1,5 @@
+#![deny(unused_crate_dependencies)]
+
 mod do_things;
 
 use anyhow::Result;
