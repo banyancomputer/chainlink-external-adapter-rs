@@ -12,4 +12,7 @@ typechain-types
 cache
 artifacts
 
+# ignoring docker test things
+integration-test/.env.list
+
 

@@ -1,0 +1,41 @@
+# todo busybox eventually
+FROM ubuntu:latest
+
+# RUN apk add --no-cache bash curl jq
+# change shell to bash
+SHELL ["/bin/bash", "-c"]
+
+# install dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    jq \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# install forge
+RUN curl -L https://foundry.paradigm.xyz | bash
+RUN source /root/.bashrc
+ENV PATH="/root/.foundry/bin:${PATH}"
+
+# add /root/.foundry/bin to PATH
+RUN foundryup
+
+WORKDIR /app
+
+# copy in the contracts
+RUN mkdir contracts
+COPY contracts-for-testing contracts
+
+#RUN ls contracts && exit 1
+
+# deploy your contracts to the chain
+ARG MNEMONIC
+ARG INFURA_KEY
+ENV INFURA_URL = "https://mainnet.infura.io/v3/${INFURA_KEY}"
+
+RUN forge script contracts/script/BlockTime.s.sol:BlockTimeDeployScript \
+    --rpc-url ${INFURA_URL} \
+    --mnemonics "${MNEMONIC}" --broadcast
+
+# fork mainnet
+RUN anvil --fork-url ${INFURA_URL} -p 8545
