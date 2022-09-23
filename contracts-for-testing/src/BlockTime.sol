@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import '@chainlink/contracts/src/v0.8/ChainlinkClient.sol';
 import '@chainlink/contracts/src/v0.8/ConfirmedOwner.sol';
 
-contract APIConsumer is ChainlinkClient, ConfirmedOwner {
+contract BlockTime is ChainlinkClient, ConfirmedOwner {
     using Chainlink for Chainlink.Request;
 
     uint256 public averageBlockTimeInMicroseconds;

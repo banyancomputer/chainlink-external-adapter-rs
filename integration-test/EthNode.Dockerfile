@@ -33,9 +33,10 @@ ARG MNEMONIC
 ARG INFURA_KEY
 ENV INFURA_URL = "https://mainnet.infura.io/v3/${INFURA_KEY}"
 
-RUN forge script contracts/script/BlockTime.s.sol:BlockTimeDeployScript \
+RUN forge create \
     --rpc-url ${INFURA_URL} \
-    --mnemonics "${MNEMONIC}" --broadcast
+    --mnemonic "${MNEMONIC}" \
+    contracts/src/BlockTime.sol:BlockTime
 
 # fork mainnet
 RUN anvil --fork-url ${INFURA_URL} -p 8545
