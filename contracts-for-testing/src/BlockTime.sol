@@ -33,13 +33,13 @@ contract BlockTime is ChainlinkClient, ConfirmedOwner {
     }
 
 
-    function startComputeAverageBlockTimeSinceWithChainlink(u256 blockNumber) public returns (u256) {
+    function startComputeAverageBlockTimeSinceWithChainlink(uint256 blockNumber) public returns (uint256) {
         Chainlink.Request memory req = buildChainlinkRequest(SPEC_ID, this, this.fulfill.selector);
         req.addInt("block_num", blockNumber);
         return sendChainlinkRequest(req, oraclePayment);
     }
 
-    function fulfill(bytes32 _requestId, u256 _averageBlockTimeInMicroseconds) public recordChainlinkFulfillment(_requestId) {
+    function fulfill(bytes32 _requestId, uint256 _averageBlockTimeInMicroseconds) public recordChainlinkFulfillment(_requestId) {
         averageBlockTimeInMicroseconds = _averageBlockTimeInMicroseconds;
     }
 }
