@@ -37,6 +37,7 @@ ENV INFURA_URL = "https://mainnet.infura.io/v3/${INFURA_KEY}"
 WORKDIR /app/chainlink-ext-adapter/contracts-for-testing
 
 RUN forge install --no-git
+RUN forge build
 
 RUN forge create \
     --rpc-url="${INFURA_URL}" \

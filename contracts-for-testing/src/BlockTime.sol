@@ -7,7 +7,10 @@ import '@chainlink/contracts/src/v0.8/ConfirmedOwner.sol';
 contract BlockTime is ChainlinkClient, ConfirmedOwner {
     using Chainlink for Chainlink.Request;
 
-    uint256 public averageBlockTimeInMicroseconds;
+    uint256 public averageBlockTimeInMilliseconds;
+
+    bytes32 private jobId;
+    uint256 private fee;
 
     // sure, this is the easy way to do it... but we're going to do it the hard way.
     //    function getAverageBlockTimeSince(u256 blockNumber) public view returns (u256) {
@@ -33,13 +36,18 @@ contract BlockTime is ChainlinkClient, ConfirmedOwner {
     }
 
 
-    function startComputeAverageBlockTimeSinceWithChainlink(uint256 blockNumber) public returns (uint256) {
-        Chainlink.Request memory req = buildChainlinkRequest(SPEC_ID, this, this.fulfill.selector);
-        req.addInt("block_num", blockNumber);
-        return sendChainlinkRequest(req, oraclePayment);
+    function startComputeAverageBlockTimeSinceWithChainlink(uint256 blockNumber) public returns (bytes32 requestId) {
+        Chainlink.Request memory req = buildChainlinkRequest(jobId, address(this), this.fulfill.selector);
+        req.addUint("block_num", blockNumber);
+        return sendChainlinkRequest(req, fee);
     }
 
-    function fulfill(bytes32 _requestId, uint256 _averageBlockTimeInMicroseconds) public recordChainlinkFulfillment(_requestId) {
-        averageBlockTimeInMicroseconds = _averageBlockTimeInMicroseconds;
+    function fulfill(bytes32 _requestId, uint256 _averageBlockTimeInMilliseconds) public recordChainlinkFulfillment(_requestId) {
+        averageBlockTimeInMilliseconds = _averageBlockTimeInMilliseconds;
+    }
+
+    function withdrawLink() public onlyOwner {
+        LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
+        require(link.transfer(msg.sender, link.balanceOf(address(this))), 'Unable to transfer');
     }
 }
