@@ -23,8 +23,8 @@ RUN foundryup
 WORKDIR /app
 
 # copy in the contracts
-RUN mkdir contracts
-COPY contracts-for-testing contracts
+RUN mkdir chainlink-ext-adapter
+COPY . chainlink-ext-adapter
 
 #RUN ls contracts && exit 1
 
@@ -33,9 +33,14 @@ ARG MNEMONIC
 ARG INFURA_KEY
 ENV INFURA_URL = "https://mainnet.infura.io/v3/${INFURA_KEY}"
 
+# move into contracts directory
+WORKDIR /app/chainlink-ext-adapter/contracts-for-testing
+
+RUN forge install
+
 RUN forge create \
-    --rpc-url ${INFURA_URL} \
-    --mnemonic "${MNEMONIC}" \
+    --rpc-url="${INFURA_URL}" \
+    --mnemonic="${MNEMONIC}" \
     contracts/src/BlockTime.sol:BlockTime
 
 # fork mainnet
