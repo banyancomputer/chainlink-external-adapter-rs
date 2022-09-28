@@ -42,7 +42,7 @@ RUN forge build
 RUN forge create \
     --rpc-url="${INFURA_URL}" \
     --mnemonic="${MNEMONIC}" \
-    contracts/src/BlockTime.sol:BlockTime
+    BlockTime
 
 # fork mainnet
 RUN anvil --fork-url ${INFURA_URL} -p 8545
