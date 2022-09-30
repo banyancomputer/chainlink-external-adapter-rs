@@ -1,48 +1,42 @@
-# todo busybox eventually
-FROM ubuntu:latest
+FROM ubuntu
 
-# RUN apk add --no-cache bash curl jq
-# change shell to bash
-SHELL ["/bin/bash", "-c"]
+RUN apt-get update && apt-get install -y bash curl jq git
 
-# install dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    jq \
-    git \
-    && rm -rf /var/lib/apt/lists/*
-
-# install forge
 RUN curl -L https://foundry.paradigm.xyz | bash
-RUN source /root/.bashrc
 ENV PATH="/root/.foundry/bin:${PATH}"
-
-# add /root/.foundry/bin to PATH
 RUN foundryup
 
 WORKDIR /app
 
 # copy in the contracts
-RUN mkdir chainlink-ext-adapter
-COPY . chainlink-ext-adapter
+RUN mkdir contracts
+COPY ./contracts-for-testing ./contracts
 
-#RUN ls contracts && exit 1
-
-# deploy your contracts to the chain
+# deploy your contracts to the testnet!
 ARG MNEMONIC
 ARG INFURA_KEY
-ENV INFURA_URL = "https://mainnet.infura.io/v3/${INFURA_KEY}"
+ENV INFURA_URL="https://goerli.infura.io/v3/${INFURA_KEY}"
+ENV DEPLOYMENT_GAS_LIMIT=8000000
 
 # move into contracts directory
-WORKDIR /app/chainlink-ext-adapter/contracts-for-testing
+WORKDIR /app/contracts
+RUN git init && \
+    git add . && \
+    git config user.email "silly@goose.com" && \
+    git config user.name "sillygooooose" && \
+    git commit -m "initial commit"
 
+#RUN ls /root/.foundry/bin && exit 1
+
+ENV PATH="/root/.foundry/bin:${PATH}"
 RUN forge install --no-git
 RUN forge build
 
 RUN forge create \
     --rpc-url="${INFURA_URL}" \
     --mnemonic="${MNEMONIC}" \
-    BlockTime
+    --gas-limit="${DEPLOYMENT_GAS_LIMIT}"\
+    BlockTime | grep "Deployed to: " | awk '{print $3}' > /app/BlockTime.address
 
-# fork mainnet
-RUN anvil --fork-url ${INFURA_URL} -p 8545
+# fork goerli with it deployed :)
+CMD anvil --fork-url ${INFURA_URL} -p 8545
