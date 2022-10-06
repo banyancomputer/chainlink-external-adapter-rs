@@ -30,10 +30,12 @@ RUN forge install --no-git
 RUN forge build
 
 RUN forge create \
-    --rpc-url="http://localhost:8545"\
+    --rpc-url=${INFURA_URL}\
     --mnemonic="${MNEMONIC}" \
     --gas-limit="${DEPLOYMENT_GAS_LIMIT}"\
-    BlockTime | grep "Deployed to: " | awk '{print $3}' > /app/BlockTime.address
+    BlockTime && exit 1
+
+RUN cat /app/BlockTime.address && exit 1
 
 # fork goerli with it deployed :)
 CMD anvil --fork-url ${INFURA_URL} -p 8545
