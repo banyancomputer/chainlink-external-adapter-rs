@@ -12,20 +12,20 @@ contract BlockTimeTest is Test {
 
     function setUp() public {
         blockTime = new BlockTime();
-        blockTime.startComputeAverageBlockTimeSinceWithChainlink(0);
+        blockTime.startComputeTimeSinceWithChainlink(0);
         // wait until fulfill gets called- if it doesn't happen in a minute, fail
         vm.roll(5*12);
         vm.startPrank(CHAINLINK_ORACLE);
         blockTime.fulfill(0, 10000);
         vm.stopPrank();
         vm.roll(5*12);
-        if (blockTime.averageBlockTimeInMilliseconds() == 0) {
-            revert("blockTime.averageBlockTimeInMilliseconds() == 0");
+        if (blockTime.timeSince() == 0) {
+            revert("blockTime.timeSince() == 0");
         }
     }
 
     function testChainlink() public view {
-        assert(blockTime.averageBlockTimeInMilliseconds() > 8000);
-        assert(blockTime.averageBlockTimeInMilliseconds() < 15000);
+        assert(blockTime.timeSince() > 8000);
+        assert(blockTime.timeSince() < 15000);
     }
 }

@@ -7,7 +7,7 @@ import '@chainlink/contracts/src/v0.8/ConfirmedOwner.sol';
 contract BlockTime is ChainlinkClient, ConfirmedOwner {
     using Chainlink for Chainlink.Request;
 
-    uint256 public averageBlockTimeInMilliseconds;
+    uint256 public timeSince;
 
     bytes32 private jobId;
     uint256 private fee;
@@ -36,14 +36,14 @@ contract BlockTime is ChainlinkClient, ConfirmedOwner {
     }
 
 
-    function startComputeAverageBlockTimeSinceWithChainlink(uint256 blockNumber) public returns (bytes32 requestId) {
+    function startComputeTimeSinceWithChainlink(uint256 blockNumber) public returns (bytes32 requestId) {
         Chainlink.Request memory req = buildChainlinkRequest(jobId, address(this), this.fulfill.selector);
         req.addUint("block_num", blockNumber);
         return sendChainlinkRequest(req, fee);
     }
 
-    function fulfill(bytes32 _requestId, uint256 _averageBlockTimeInMilliseconds) public recordChainlinkFulfillment(_requestId) {
-        averageBlockTimeInMilliseconds = _averageBlockTimeInMilliseconds;
+    function fulfill(bytes32 _requestId, uint256 _timeSince) public recordChainlinkFulfillment(_requestId) {
+        timeSince = _timeSince;
     }
 
     function withdrawLink() public onlyOwner {

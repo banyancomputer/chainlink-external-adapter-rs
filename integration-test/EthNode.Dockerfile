@@ -26,14 +26,11 @@ RUN git init && \
     git config user.name "sillygooooose" && \
     git commit -m "initial commit"
 
-#RUN ls /root/.foundry/bin && exit 1
-
-ENV PATH="/root/.foundry/bin:${PATH}"
 RUN forge install --no-git
 RUN forge build
 
 RUN forge create \
-    --rpc-url="${INFURA_URL}" \
+    --rpc-url="http://localhost:8545"\
     --mnemonic="${MNEMONIC}" \
     --gas-limit="${DEPLOYMENT_GAS_LIMIT}"\
     BlockTime | grep "Deployed to: " | awk '{print $3}' > /app/BlockTime.address

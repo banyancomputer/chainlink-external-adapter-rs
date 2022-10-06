@@ -15,7 +15,7 @@ services:
       - MNEMONIC=your mnemonic
       - INFURA_KEY=your infura key
   chainlink-node:
-    build: ./ChainlinkNode.Dockerfile
+    build: smartcontract/chainlink:0.10.10
     ports:
       - "8000:5000"
     volumes:
@@ -24,14 +24,14 @@ services:
     depends_on:
       - postgres
       - eth-node
-  chainlink-ea:
-    build: ./ChainlinkEA.Dockerfile
-    ports:
-      - "8080:8080"
-    volumes:
-      - .:/code
-      - logvolume01:/var/log
-    depends_on:
-      - chainlink-node
+#  chainlink-ea:
+#    build: ./ChainlinkEA.Dockerfile
+#    ports:
+#      - "8080:8080"
+#    volumes:
+#      - .:/code
+#      - logvolume01:/var/log
+#    depends_on:
+#      - chainlink-node
 volumes:
   logvolume01: {}
