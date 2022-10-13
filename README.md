@@ -19,3 +19,4 @@ Connect postgreSQl to workbench: sh sqlworkbench.sh
 Pull desired docker image: docker pull smartcontract/chainlink:1.7.0-root
 Run: docker run -p 6688:6688 -v ~/.chainlink-goerli:/chainlink -it --env-file=.env smartcontract/chainlink:1.7.0-nonroot local n
 
+Contract deployed at 0x8BfB349916287410C2e195768f389a81100126ef

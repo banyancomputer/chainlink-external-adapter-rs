@@ -8,8 +8,6 @@ contract BlockTime is ChainlinkClient, ConfirmedOwner {
     using Chainlink for Chainlink.Request;
 
     uint256 public timeSince;
-
-    bytes32 private jobId;
     uint256 private fee;
 
     // sure, this is the easy way to do it... but we're going to do it the hard way.
@@ -30,14 +28,13 @@ contract BlockTime is ChainlinkClient, ConfirmedOwner {
      */
     constructor() ConfirmedOwner(msg.sender) {
         setChainlinkToken(0x326C977E6efc84E512bB9C30f76E30c160eD06FB);
-        setChainlinkOracle(0xCC79157eb46F5624204f47AB42b3906cAA40eaB7);
-        jobId = 'ca98366cc7314957b8c012c72f05aeeb';
+        setChainlinkOracle(0xF1a252307Ff9F3fbB9598c9a181385122948b8Ae);
         fee = (1 * LINK_DIVISIBILITY) / 10; // 0,1 * 10**18 (Varies by network and job)
     }
 
 
-    function startComputeTimeSinceWithChainlink(uint256 blockNumber) public returns (bytes32 requestId) {
-        Chainlink.Request memory req = buildChainlinkRequest(jobId, address(this), this.fulfill.selector);
+    function startComputeTimeSinceWithChainlink(uint256 blockNumber, string memory jobId) public returns (bytes32 requestId) {
+        Chainlink.Request memory req = buildChainlinkRequest(stringToBytes32(jobId), address(this), this.fulfill.selector);
         req.addUint("block_num", blockNumber);
         return sendChainlinkRequest(req, fee);
     }
@@ -49,5 +46,16 @@ contract BlockTime is ChainlinkClient, ConfirmedOwner {
     function withdrawLink() public onlyOwner {
         LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
         require(link.transfer(msg.sender, link.balanceOf(address(this))), 'Unable to transfer');
+    }
+
+    function stringToBytes32(string memory source) private pure returns (bytes32 result) {
+        bytes memory tempEmptyStringTest = bytes(source);
+        if (tempEmptyStringTest.length == 0) {
+            return 0x0;
+        }
+        assembly {
+            // solhint-disable-line no-inline-assembly
+            result := mload(add(source, 32))
+        }
     }
 }

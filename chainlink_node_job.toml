@@ -1,8 +1,11 @@
 type = "directrequest"
 schemaVersion = 1
-name = "Example-Rust-EA"
-contractAddress = "0xA74F1E1Bb6204B9397Dac33AE970E68F8aBC7651"
+name = "example_chainlink"
+externalJobID = "29ef179a-e4bb-4738-8ad7-de1717c00108"
 maxTaskDuration = "0s"
+contractAddress = "0xF1a252307Ff9F3fbB9598c9a181385122948b8Ae"
+evmChainID = "5"
+minContractPaymentLinkJuels = "0"
 observationSource = """
     decode_log   [type=ethabidecodelog
                   abi="OracleRequest(bytes32 indexed specId, address requester, bytes32 requestId, uint256 payment, address callbackAddr, bytes4 callbackFunctionId, uint256 cancelExpiration, uint256 dataVersion, bytes data)"
@@ -10,14 +13,17 @@ observationSource = """
                   topics="$(jobRun.logTopics)"]
 
     decode_cbor  [type=cborparse data="$(decode_log.data)"]
-    fetch        [type=bridge name="example-rust-data" requestData="{\\"id\\": $(jobSpec.externalJobID), \\"data\\": { \\"block_num\\": $(decode_cbor.block_num)}}"]
-    parse        [type=jsonparse path="data,0,Games" data="$(fetch)"]
-    encode_data  [type=ethabiencode abi="(uint256 value)" data="{ \\"value\\": $(parse) }"]
-    encode_tx    [type=ethabiencode
-                  abi="fulfillOracleRequest(bytes32 requestId, uint256 payment, address callbackAddress, bytes4 callbackFunctionId, uint256 expiration, bytes32 data)"
-                  data="{\\"requestId\\": $(decode_log.requestId), \\"payment\\": $(decode_log.payment), \\"callbackAddress\\": $(decode_log.callbackAddr), \\"callbackFunctionId\\": $(decode_log.callbackFunctionId), \\"expiration\\": $(decode_log.cancelExpiration), \\"data\\": $(encode_data)}"
-                 ]
-    submit_tx    [type=ethtx to="0xA74F1E1Bb6204B9397Dac33AE970E68F8aBC7651" data="$(encode_tx)"]
 
-    decode_log -> decode_cbor -> fetch -> parse -> encode_data -> encode_tx -> submit_tx
+    ds  [type="bridge"
+              name="chainlink_example"
+              requestData="{\\"id\\": $(jobSpec.externalJobID), \\"data\\": {\\"block_num\\": $(decode_cbor.block_num)}}"
+              allowUnrestrictedNetworkAccess=true]
+    parse        [type=jsonparse path="data,duration,secs" data="$(ds)"]
+    encode_data [type="ethabiencode" abi="(bytes32 requestId, uint256 _timeSince)" data="{ \\"requestId\\": $(decode_log.requestId), \\"_timeSince\\": $(parse)}"]
+    encode_tx    [type="ethabiencode"
+                    abi="fulfillOracleRequest2(bytes32 requestId, uint256 payment, address callbackAddress, bytes4 callbackFunctionId, uint256 expiration, bytes calldata data)"
+                    data="{\\"requestId\\": $(decode_log.requestId), \\"payment\\":   $(decode_log.payment), \\"callbackAddress\\": $(decode_log.callbackAddr), \\"callbackFunctionId\\": $(decode_log.callbackFunctionId), \\"expiration\\": $(decode_log.cancelExpiration), \\"data\\": $(encode_data)}"]
+    submit_tx    [type="ethtx" to="0xF1a252307Ff9F3fbB9598c9a181385122948b8Ae" data="$(encode_tx)"]
+    
+    decode_log -> decode_cbor -> ds -> parse -> encode_data -> encode_tx -> submit_tx
 """
