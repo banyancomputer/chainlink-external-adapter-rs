@@ -17,6 +17,7 @@ observationSource = """
     ds  [type="bridge"
               name="chainlink_example"
               requestData="{\\"id\\": $(jobSpec.externalJobID), \\"data\\": {\\"block_num\\": $(decode_cbor.block_num)}}"
+              async=true
               allowUnrestrictedNetworkAccess=true]
     parse        [type=jsonparse path="data,duration,secs" data="$(ds)"]
     encode_data [type="ethabiencode" abi="(bytes32 requestId, uint256 _timeSince)" data="{ \\"requestId\\": $(decode_log.requestId), \\"_timeSince\\": $(parse)}"]
