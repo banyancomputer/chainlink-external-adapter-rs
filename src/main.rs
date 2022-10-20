@@ -10,7 +10,7 @@ use rocket::{post, State};
 use std::sync::Arc;
 
 pub struct WebserverState {
-    pub provider: Arc<Provider<Http>>, // you might need to change this for your needs as well
+    pub provider: Arc<Provider<Http>>, // you might need to change this for your needs as well 
     pub should_be_async: bool,
 }
 
