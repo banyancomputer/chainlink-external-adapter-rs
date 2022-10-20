@@ -8,8 +8,6 @@ env:
   RUSTFLAGS: "-C link-dead-code"
 
 jobs:
-  call_codecov_workflow:
-    uses: banyancomputer/.github/.github/workflows/rust-codecov.yml@master
   run_linters:
     uses: banyancomputer/.github/.github/workflows/rust_linters_formatters.yml@master
   run_tests:
