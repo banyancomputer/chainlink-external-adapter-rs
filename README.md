@@ -10,9 +10,16 @@ $ mv .env.example .env
 ```
 then add your private key and infura API key to .env
 
-# chainlink Node Setup
+# PreReqs
 
 Follow the instructions to set up a chainlink EA Node on https://docs.chain.link/docs/running-a-chainlink-node/
+
+You will need to install Docker, Sqlworkbench, and set up and AWS postgreSQL database. The instructions linked above walk you through this. You will also need to install Hardhat: 
+```bash
+npm i hardhat
+```
+
+# chainlink Node Setup
 
 Once you have set everything up, each time you start up your chainlink node again requires: 
 
@@ -55,4 +62,4 @@ Make sure your contract is funded with some testnet link
 
 # testing
 
-Look at unit testing framework in https://github.com/banyancomputer/chainlink-proof-validator/blob/jonahkaye/feat/unit_testing/src/main.rs You will need to write unit tests specific to your application. 
+Look at unit testing framework in https://github.com/banyancomputer/chainlink-proof-validator/blob/main/src/main.rs You will need to write unit tests specific to your application. 
