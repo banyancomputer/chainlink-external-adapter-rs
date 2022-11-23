@@ -12,3 +12,6 @@ ethers = { git = "https://github.com/gakonst/ethers-rs" }
 anyhow = "1.0"
 dotenv = "0.15.0"
 reqwest = "0.11"
+rand = "0.8.5"
+tokio = "1.21.2"
+

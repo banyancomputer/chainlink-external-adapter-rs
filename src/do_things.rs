@@ -11,8 +11,13 @@ pub struct ExampleRequestData {
     pub block_num: u64,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ChainlinkResponse {
+    pub data: ExampleResponseData,
+}
+
 /// CHANGE ME TO WHAT YOU WANT TO RETURN TO CHAIN!
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ExampleResponseData {
     pub duration: Duration,
 }
@@ -23,7 +28,7 @@ pub struct ExampleResponseData {
 pub(crate) async fn compute_internal(
     provider: Arc<Provider<Http>>,
     input_data: ExampleRequestData,
-) -> Result<ExampleResponseData> {
+) -> Result<ChainlinkResponse> {
     let block_num = input_data.block_num;
 
     // Getting the most recent block number
@@ -56,10 +61,12 @@ pub(crate) async fn compute_internal(
     let target_block_time = target_block.time()?;
 
     // Time since target block
-    let duration = current_block_time
+    let duration: Duration = current_block_time
         .signed_duration_since(target_block_time)
         .to_std()
         .map_err(|e| anyhow!("Could not convert duration to std::time::Duration: {e}"))?;
 
-    Ok(ExampleResponseData { duration })
+    dbg!("Duration {:?}", duration);
+    Ok(ChainlinkResponse {
+        data: ExampleResponseData {duration}})
 }

@@ -1,13 +1,15 @@
 #![deny(unused_crate_dependencies)]
 
-mod do_things;
+pub mod do_things;
 
 use anyhow::Result;
 use ethers::providers::{Http, Provider};
+use rand::Rng;
 use rocket::serde::{json::serde_json, json::Json, Deserialize, Serialize};
 use rocket::tokio::task::spawn;
 use rocket::{post, State};
 use std::sync::Arc;
+use tokio as _;
 
 pub struct WebserverState {
     pub provider: Arc<Provider<Http>>, // you might need to change this for your needs as well
@@ -23,7 +25,7 @@ pub struct ChainlinkEARequest {
 }
 
 fn format_response(
-    result: Result<do_things::ExampleResponseData, anyhow::Error>,
+    result: Result<do_things::ChainlinkResponse, anyhow::Error>,
 ) -> Json<serde_json::Value> {
     match result {
         Ok(data) => Json(serde_json::json!({ "data": data })),
@@ -54,10 +56,15 @@ pub async fn compute(
         }))
         // end of thread
     } else {
-        format_response(
-            do_things::compute_internal(webserver_state.provider.clone(), input_data.data.clone())
-                .await,
-        )
+        let res = format_response(
+            do_things::compute_internal(
+                webserver_state.provider.clone(), 
+                input_data.data.clone()
+            )
+            .await,
+        ); 
+        dbg!("testing: {:?}", res.clone());
+        return res; 
     }
 }
 
@@ -81,4 +88,47 @@ async fn main() -> Result<()> {
         .await?;
 
     Ok(())
+}
+
+/// Helper function for testing inputs to Chainlink EA without having to run a node.
+pub async fn ea_example_api_call(
+    api_url: String
+) -> Result<do_things::ChainlinkResponse, anyhow::Error> {
+    // Job id when chainlink calls is not random.
+    let mut rng = rand::thread_rng();
+    let random_job_id: u16 = rng.gen();
+    let map = serde_json::json!({
+        "id": random_job_id.to_string(),
+        "data":
+        {
+             "block_num": u64::MIN,
+        }
+    });
+    let client = reqwest::Client::new();
+    let res = client
+        .post(api_url)
+        .json(&map)
+        .send()
+        .await?
+        .json::<do_things::ChainlinkResponse>()
+        .await?;
+    dbg!("test debug {:?}", res.clone());
+    Ok(res)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::Duration;
+
+    #[tokio::test]
+    /// This test will just call the API and compare the duration to the block time.
+    async fn api_call_test() -> Result<(), anyhow::Error> {
+        let response_data: do_things::ChainlinkResponse =
+            ea_example_api_call("http://127.0.0.1:8000/compute".to_string())
+                .await?;
+        let one_second = Duration::from_secs(1);
+        assert_eq!(response_data.data.duration, one_second);
+        Ok(())
+    }
 }
