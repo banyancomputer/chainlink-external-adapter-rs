@@ -72,5 +72,8 @@ $ npx hardhat run scripts/test_example_ea.js --network goerli
 Make sure your contract is funded with some testnet link which you can get here https://faucets.chain.link/
 
 # testing
-
-Look at unit testing framework in https://github.com/banyancomputer/chainlink-proof-validator/blob/main/src/main.rs You will need to write unit tests specific to your application. 
+To test run 
+```bash
+$ cargo test
+```
+Look at unit testing framework in to write tests specific to your application https://github.com/banyancomputer/chainlink-proof-validator/blob/main/src/main.rs 
