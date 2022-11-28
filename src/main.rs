@@ -28,7 +28,7 @@ fn format_response(
     result: Result<do_things::ChainlinkResponse, anyhow::Error>,
 ) -> Json<serde_json::Value> {
     match result {
-        Ok(data) => Json(serde_json::json!({"data": data})),
+        Ok(data) => Json(serde_json::json!({ "data": data })),
         Err(e) => Json(serde_json::json!({"error": e.to_string()})),
     }
 }
@@ -38,7 +38,7 @@ fn format_response(
 pub async fn compute(
     webserver_state: &State<WebserverState>,
     input_data: Json<ChainlinkEARequest>,
-) -> Json<serde_json::Value>{
+) -> Json<serde_json::Value> {
     if webserver_state.should_be_async {
         let new_provider = webserver_state.provider.clone();
         spawn(async move {
@@ -56,14 +56,10 @@ pub async fn compute(
         }))
         // end of thread
     } else {
-        let res = format_response(
-            do_things::compute_internal(
-                webserver_state.provider.clone(), 
-                input_data.data.clone()
-            )
-            .await,
-        ); 
-        return res; 
+        format_response(
+            do_things::compute_internal(webserver_state.provider.clone(), input_data.data.clone())
+                .await,
+        )
     }
 }
 
@@ -77,7 +73,7 @@ async fn main() -> Result<()> {
     // create an ethers HTTP provider
     let provider = Arc::new(Provider::<Http>::try_from(api_url)?);
 
-    let _ = rocket::build()  
+    let _ = rocket::build()
         .mount("/", rocket::routes![compute])
         .manage(WebserverState {
             provider,
@@ -90,11 +86,8 @@ async fn main() -> Result<()> {
 }
 
 /// Helper function for testing inputs to Chainlink EA without having to run a node.
-pub async fn ea_example_api_call(
-    api_url: String
-) -> Result<serde_json::Value, anyhow::Error> {
-
-    // Job id when chainlink calls is not random. This is just for testing purposes. 
+pub async fn ea_example_api_call(api_url: String) -> Result<serde_json::Value, anyhow::Error> {
+    // Job id when chainlink calls is not random. This is just for testing purposes.
     let mut rng = rand::thread_rng();
     let random_job_id: u16 = rng.gen();
     let map = serde_json::json!({
@@ -111,10 +104,9 @@ pub async fn ea_example_api_call(
         .send()
         .await?
         .json::<serde_json::Value>()
-        .await?;    
+        .await?;
     Ok(res)
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -125,11 +117,18 @@ mod tests {
     /// This test will just call the API and compare the duration to the block time.
     async fn api_call_test() -> Result<(), anyhow::Error> {
         let response_data =
-            ea_example_api_call("http://127.0.0.1:8000/compute".to_string())
-                .await?;
-        
+            ea_example_api_call("http://127.0.0.1:8000/compute".to_string()).await?;
+
         let one_second = Duration::new(1, 0);
-        let duration = response_data.get("data").unwrap().get("duration").unwrap().get("secs").unwrap().as_u64().unwrap();
+        let duration = response_data
+            .get("data")
+            .unwrap()
+            .get("duration")
+            .unwrap()
+            .get("secs")
+            .unwrap()
+            .as_u64()
+            .unwrap();
         assert_ne!(Duration::new(duration, 0), one_second);
         Ok(())
     }

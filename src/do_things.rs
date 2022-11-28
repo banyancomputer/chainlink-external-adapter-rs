@@ -11,9 +11,8 @@ pub struct ExampleRequestData {
     pub block_num: u64,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)] 
-pub struct ChainlinkResponse
-{
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ChainlinkResponse {
     pub duration: Duration,
 }
 
@@ -60,6 +59,6 @@ pub(crate) async fn compute_internal(
         .signed_duration_since(target_block_time)
         .to_std()
         .map_err(|e| anyhow!("Could not convert duration to std::time::Duration: {e}"))?;
-    
-    Ok(ChainlinkResponse {duration})
+
+    Ok(ChainlinkResponse { duration })
 }
