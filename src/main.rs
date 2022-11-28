@@ -77,12 +77,12 @@ async fn main() -> Result<()> {
     // create an ethers HTTP provider
     let provider = Arc::new(Provider::<Http>::try_from(api_url)?);
 
-    let _ = rocket::build()
+    let _ = rocket::build()  
+        .mount("/", rocket::routes![compute])
         .manage(WebserverState {
             provider,
             should_be_async,
         })
-        .mount("/", rocket::routes![compute])
         .launch()
         .await?;
 
@@ -101,7 +101,7 @@ pub async fn ea_example_api_call(
         "id": random_job_id.to_string(),
         "data":
         {
-             "block_num": 8033444,
+             "block_num": 8033444, // example hardcoded value
         }
     });
     let client = reqwest::Client::new();
