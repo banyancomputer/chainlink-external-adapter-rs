@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use ethers::prelude::Middleware;
 use ethers::providers::{Http, Provider};
-use rocket::serde::{Deserialize, Serialize};
+use rocket::serde::{Deserialize, Serialize}; //response::Responder,
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -11,14 +11,10 @@ pub struct ExampleRequestData {
     pub block_num: u64,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct ChainlinkResponse {
-    pub data: ExampleResponseData,
-}
-
-/// CHANGE ME TO WHAT YOU WANT TO RETURN TO CHAIN!
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct ExampleResponseData {
+#[derive(Serialize, Deserialize, Debug, Clone)] //, Responder)]
+// #[response(status = 418, content_type = "json")]
+pub struct ChainlinkResponse
+{
     pub duration: Duration,
 }
 
@@ -65,8 +61,7 @@ pub(crate) async fn compute_internal(
         .signed_duration_since(target_block_time)
         .to_std()
         .map_err(|e| anyhow!("Could not convert duration to std::time::Duration: {e}"))?;
-
+    
     dbg!("Duration {:?}", duration);
-    Ok(ChainlinkResponse {
-        data: ExampleResponseData {duration}})
+    Ok(ChainlinkResponse {duration})
 }

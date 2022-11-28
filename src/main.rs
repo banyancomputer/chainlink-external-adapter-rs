@@ -38,7 +38,7 @@ fn format_response(
 pub async fn compute(
     webserver_state: &State<WebserverState>,
     input_data: Json<ChainlinkEARequest>,
-) -> Json<serde_json::Value> {
+) -> Json<serde_json::Value>{
     if webserver_state.should_be_async {
         let new_provider = webserver_state.provider.clone();
         spawn(async move {
@@ -78,12 +78,13 @@ async fn main() -> Result<()> {
     // create an ethers HTTP provider
     let provider = Arc::new(Provider::<Http>::try_from(api_url)?);
 
+    // this is where the problem is.
     let _ = rocket::build()
-        .mount("/", rocket::routes![compute])
         .manage(WebserverState {
             provider,
             should_be_async,
         })
+        .mount("/", rocket::routes![compute])
         .launch()
         .await?;
 
@@ -101,9 +102,10 @@ pub async fn ea_example_api_call(
         "id": random_job_id.to_string(),
         "data":
         {
-             "block_num": u64::MIN,
+             "block_num": 8033444,
         }
     });
+    println!("hi in api call");
     let client = reqwest::Client::new();
     let res = client
         .post(api_url)
@@ -112,9 +114,11 @@ pub async fn ea_example_api_call(
         .await?
         .json::<do_things::ChainlinkResponse>()
         .await?;
+    println!("hi after api call");
     dbg!("test debug {:?}", res.clone());
     Ok(res)
 }
+
 
 #[cfg(test)]
 mod tests {
@@ -124,11 +128,44 @@ mod tests {
     #[tokio::test]
     /// This test will just call the API and compare the duration to the block time.
     async fn api_call_test() -> Result<(), anyhow::Error> {
+        println!("hi");
         let response_data: do_things::ChainlinkResponse =
             ea_example_api_call("http://127.0.0.1:8000/compute".to_string())
                 .await?;
-        let one_second = Duration::from_secs(1);
-        assert_eq!(response_data.data.duration, one_second);
+        
+        let one_second = Duration::new(1,0);
+        assert_eq!(response_data.duration, one_second);
         Ok(())
     }
 }
+
+
+/*
+#[cfg(test)]
+mod test {
+    use rocket::local::Client;
+    use rocket::http::Status;
+    use rocket::serde::{json::serde_json};
+    use rand::Rng;
+
+    #[test]
+    fn hello_world() {
+
+        let mut rng = rand::thread_rng();
+        let random_job_id: u16 = rng.gen();
+        let map = serde_json::json!({
+            "id": random_job_id.to_string(),
+            "data":
+            {
+                "block_num": 8033444,
+            }
+        });
+        let client = Client::new(rocket::ignite()).expect("valid rocket");
+        let response = client.post("http://127.0.0.1:8000/compute".to_string())
+            .json(&map)
+            .dispatch();
+        dbg!("test response: {:?}", response);
+        assert_eq!(response.status(), Status::Ok);
+    }
+}
+*/
