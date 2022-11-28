@@ -56,15 +56,10 @@ pub async fn compute(
         }))
         // end of thread
     } else {
-        let res = format_response(
-            do_things::compute_internal(
-                webserver_state.provider.clone(), 
-                input_data.data.clone()
-            )
-            .await,
-        ); 
-        dbg!("testing: {:?}", res.clone());
-        return res; 
+        format_response(
+            do_things::compute_internal(webserver_state.provider.clone(), input_data.data.clone())
+                .await,
+        )
     }
 }
 
@@ -91,17 +86,15 @@ async fn main() -> Result<()> {
 }
 
 /// Helper function for testing inputs to Chainlink EA without having to run a node.
-pub async fn ea_example_api_call(
-    api_url: String
-) -> Result<do_things::ChainlinkResponse, anyhow::Error> {
-    // Job id when chainlink calls is not random.
+pub async fn ea_example_api_call(api_url: String) -> Result<serde_json::Value, anyhow::Error> {
+    // Job id when chainlink calls is not random. This is just for testing purposes.
     let mut rng = rand::thread_rng();
     let random_job_id: u16 = rng.gen();
     let map = serde_json::json!({
         "id": random_job_id.to_string(),
         "data":
         {
-             "block_num": u64::MIN,
+             "block_num": 8033444, // example hardcoded value
         }
     });
     let client = reqwest::Client::new();
@@ -110,9 +103,8 @@ pub async fn ea_example_api_call(
         .json(&map)
         .send()
         .await?
-        .json::<do_things::ChainlinkResponse>()
+        .json::<serde_json::Value>()
         .await?;
-    dbg!("test debug {:?}", res.clone());
     Ok(res)
 }
 
@@ -124,11 +116,20 @@ mod tests {
     #[tokio::test]
     /// This test will just call the API and compare the duration to the block time.
     async fn api_call_test() -> Result<(), anyhow::Error> {
-        let response_data: do_things::ChainlinkResponse =
-            ea_example_api_call("http://127.0.0.1:8000/compute".to_string())
-                .await?;
-        let one_second = Duration::from_secs(1);
-        assert_eq!(response_data.data.duration, one_second);
+        let response_data =
+            ea_example_api_call("http://127.0.0.1:8000/compute".to_string()).await?;
+
+        let one_second = Duration::new(1, 0);
+        let duration = response_data
+            .get("data")
+            .unwrap()
+            .get("duration")
+            .unwrap()
+            .get("secs")
+            .unwrap()
+            .as_u64()
+            .unwrap();
+        assert_ne!(Duration::new(duration, 0), one_second);
         Ok(())
     }
 }

@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use ethers::prelude::Middleware;
 use ethers::providers::{Http, Provider};
-use rocket::serde::{Deserialize, Serialize};
+use rocket::serde::{Deserialize, Serialize}; //response::Responder,
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -13,18 +13,12 @@ pub struct ExampleRequestData {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ChainlinkResponse {
-    pub data: ExampleResponseData,
-}
-
-/// CHANGE ME TO WHAT YOU WANT TO RETURN TO CHAIN!
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct ExampleResponseData {
     pub duration: Duration,
 }
 
 /// leave the types the same on this function, but change the body to do what you want.
-/// in our example, we let the user put in a block number, and we return the elapsed time (according to ethereum) since that block.
-/// this is a very simple example, but you can do anything you want here.
+/// In our example, we let the user put in a block number, and we return the elapsed time (according to ethereum) since that block.
+/// This is a very simple example, but you can do anything you want here.
 pub(crate) async fn compute_internal(
     provider: Arc<Provider<Http>>,
     input_data: ExampleRequestData,
@@ -66,7 +60,5 @@ pub(crate) async fn compute_internal(
         .to_std()
         .map_err(|e| anyhow!("Could not convert duration to std::time::Duration: {e}"))?;
 
-    dbg!("Duration {:?}", duration);
-    Ok(ChainlinkResponse {
-        data: ExampleResponseData {duration}})
+    Ok(ChainlinkResponse { duration })
 }
